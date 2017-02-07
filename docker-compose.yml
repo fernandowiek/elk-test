@@ -1,14 +1,14 @@
 version: '2'
 services:
   elasticsearch:
-    build: elasticsearch/
-    #image: elasticsearch:5.2.0
+    #build: elasticsearch/
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.2.0
     container_name: elasticsearch
     #command: elasticsearch -Des.cluster.name: docker-cluster
     environment:
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS: -Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
         soft: -1
@@ -16,25 +16,24 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-   # mem_limit: 1g
+    mem_limit: 1g
     cap_add:
       - IPC_LOCK
-    volumes:
-      - /opt/es:/usr/share/elasticsearch/data
+    #volumes:
+    #  - /opt/es:/usr/share/elasticsearch/data
     ports:
-      - "9300:9300"
       - "9200:9200"
     networks:
       - esnet
   
   elasticsearchx:
-    build: elasticsearchx/
-    #image: elasticsearch:5.2.0
+    #build: elasticsearchx/
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.2.0
     container_name: elasticsearchx
     environment:
       - cluster.name=docker-cluster
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS: -Xms512m -Xmx512m"
+      #- Des.discovery.zen.ping.multicast.enabled=false
       - "discovery.zen.ping.unicast.hosts=elasticsearch"
     ulimits:
       memlock:
@@ -43,14 +42,14 @@ services:
       nofile:
         soft: 65536
         hard: 65636
-  #  mem_limit: 1g
+    mem_limit: 1g
     cap_add:
       - IPC_LOCK
-    volumes:
-      - /opt/es2:/usr/share/elasticsearch/data
-    ports:
-      - "9300"
-      - "9200"
+   # volumes:
+   #   - /opt/es2:/usr/share/elasticsearch/data
+    #ports:
+    #  - "9301:9300"
+    #  - "9201:9200"
     networks:
       - esnet
   
@@ -82,6 +81,13 @@ services:
     depends_on:
       - elasticsearch
       - elasticsearchx
+ 
+  nginx:
+    build: nginx-filebeat/
+    ports:
+      - "80:80"
+    networks:
+      - esnet
 
 #volumes:
 #  esdata1:
