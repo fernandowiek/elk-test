@@ -29,7 +29,7 @@ services:
   elasticsearchx:
     #build: elasticsearchx/
     image: docker.elastic.co/elasticsearch/elasticsearch:5.2.0
-    container_name: elasticsearchx
+    container_name: elasticsearch2
     environment:
       - cluster.name=docker-cluster
       - "ES_JAVA_OPTS: -Xms512m -Xmx512m"
@@ -65,7 +65,7 @@ services:
       - esnet
     depends_on:
       - elasticsearch
-      - elasticsearchx
+      - elasticsearch2
 
   kibana:
     build: kibana/
@@ -80,7 +80,7 @@ services:
       - esnet
     depends_on:
       - elasticsearch
-      - elasticsearchx
+      - elasticsearch2
  
   nginx:
     build: nginx-filebeat/
