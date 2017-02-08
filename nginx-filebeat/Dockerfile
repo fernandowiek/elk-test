@@ -1,13 +1,3 @@
-# Dockerfile to illustrate how Filebeat can be used with nginx
-# Filebeat 5.0.0
-
-# Build with:
-# docker build -t filebeat-nginx-example .
-
-# Run with:
-# docker run -p 80:80 -it --link <elk-container-name>:elk \
-#     --name filebeat-nginx-example filebeat-nginx-example
-
 FROM nginx
 MAINTAINER Sebastien Pujadas http://pujadas.net
 ENV REFRESHED_AT 2016-11-04
@@ -43,11 +33,11 @@ RUN rm /var/log/nginx/access.log /var/log/nginx/error.log
 ### configure Filebeat
 
 # config file
-ADD filebeat.yml /etc/filebeat/filebeat.yml
+COPY config/filebeat.yml /etc/filebeat/filebeat.yml
 
 # CA cert
 RUN mkdir -p /etc/pki/tls/certs
-ADD logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
+COPY config/logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
 
 ###############################################################################
 #                                    DATA
@@ -55,13 +45,13 @@ ADD logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
 
 ### add dummy HTML file
 
-COPY html /usr/share/nginx/html
+COPY config/html /usr/share/nginx/html
 
 
 ###############################################################################
 #                                    START
 ###############################################################################
 
-ADD ./start.sh /usr/local/bin/start.sh
+COPY config/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 CMD [ "/usr/local/bin/start.sh" ]

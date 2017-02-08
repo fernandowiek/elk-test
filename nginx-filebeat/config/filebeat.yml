@@ -9,12 +9,18 @@ filebeat:
     
     - input_type: log
       paths:
-        - "/var/log/nginx/*.log"
+        - "/var/log/nginx/access.log"
       document_type: nginx-access
+      encoding: "utf-8"
+     
+    - input_type: log
+      paths:
+        - "/var/log/nginx/error.log"
+      document_type: nginx-error
       encoding: "utf-8"
 
 output.logstash:
-  hosts: ["logstash:5000"]
+  hosts: ["logstash:5044"]
   index: filebeat
 
 #output:
