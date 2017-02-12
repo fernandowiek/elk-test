@@ -1,5 +1,6 @@
 $install_docker_script = <<SCRIPT
 echo Installing Docker...
+sudo sysctl -w vm.max_map_count=262144
 curl -sSL https://get.docker.com/ | sh
 usermod -aG docker ubuntu
 SCRIPT
