@@ -1,100 +1,37 @@
-version: '2'
+version: '3'
+
 services:
-  elasticsearch:
-    #build: elasticsearch/
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.2.0
-    container_name: elasticsearch
-    #command: elasticsearch -Des.cluster.name: docker-cluster
+  master:
+    image: itzg/elasticsearch
     environment:
-      - cluster.name=docker-cluster
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    mem_limit: 1g
-    cap_add:
-      - IPC_LOCK
-    #volumes:
-    #  - /opt/es:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    networks:
-      - esnet
-  
-  elasticsearch2:
-    #build: elasticsearch2/
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.2.0
-    container_name: elasticsearch2
+      TYPE: MASTER
+      UNICAST_HOSTS: master
+      MIN_MASTERS: 1
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+  data:
+    image: itzg/elasticsearch
     environment:
-      - cluster.name=docker-cluster
-      - "ES_JAVA_OPTS: -Xms512m -Xmx512m"
-      #- Des.discovery.zen.ping.multicast.enabled=false
-      - "discovery.zen.ping.unicast.hosts=elasticsearch"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65636
-    mem_limit: 1g
-    cap_add:
-      - IPC_LOCK
-   # volumes:
-   #   - /opt/es2:/usr/share/elasticsearch/data
-    #ports:
-    #  - "9301:9300"
-    #  - "9201:9200"
-    networks:
-      - esnet
-  
-  logstash:
-    build: logstash/
-   # image: logstash:5.2.0
-    command: logstash -f /etc/logstash/conf.d/logstash.conf
-    volumes:
-      - ./logstash/config:/etc/logstash/conf.d
+      TYPE: DATA
+      UNICAST_HOSTS: master
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 60s
+  gateway:
+    image: itzg/elasticsearch
     ports:
-      - "5044:5044"
-    networks:
-      - esnet
-    depends_on:
-      - elasticsearch
-      - elasticsearch2
-
+      - "9200:9200/tcp"
+      - "9300:9300/tcp"
+    environment:
+      TYPE: GATEWAY
+      UNICAST_HOSTS: master
   kibana:
-    build: kibana/
-    #image: docker.elastic.co/kibana/kibana:5.2.0
+    image: kibana
+    ports:
+      - "5601:5601/tcp"
     environment:
-     ELASTICSEARCH_URL: http://elasticsearch:9200
-    volumes:
-      - ./kibana/config/:/etc/kibana/
-    ports:
-      - "5601:5601"
-    networks:
-      - esnet
-    depends_on:
-      - elasticsearch
-      - elasticsearch2
- 
-  nginx:
-    build: nginx-filebeat/
-    ports:
-      - "80:80"
-    networks:
-      - esnet
-
-#volumes:
-#  esdata1:
-#    driver: local
-#  esdata2:
-#    driver: local
-
-networks:
-  esnet:
-    driver: bridge
+      ELASTICSEARCH_URL: http://gateway:9200

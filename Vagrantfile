@@ -25,29 +25,7 @@ SCRIPT
 
 $es_script = <<SCRIPT
 echo ElasticSearch Init...
-docker service create \
-   --name escluster \
-   --mode global \
-   --update-parallelism 1 \
-   --update-delay 60s \
-   --mount type=bind,source=/tmp,target=/data \
- docker.elastic.co/elasticsearch/elasticsearch:5.2.0 \
-   elasticsearch \
-   -Des.discovery.zen.ping.multicast.enabled=false \
-   -Des.discovery.zen.ping.unicast.hosts=escluster \
-   -Des.gateway.expected_nodes=1 \
-   -Des.discovery.zen.minimum_master_nodes=1 \
-   -Des.gateway.recover_after_nodes=1 \
-   -Des.network.bind=_eth0:ipv4_
-SCRIPT
-
-$kibana_script = <<SCRIPT
-docker service create \
-   --name=kibana \
-   --publish=5601:5601/tcp \
-   --limit-memory=256m \
-   --env ELASTICSEARCH_URL:http://10.100.199.200:9200 \
- kibana
+docker stack deploy -c docker-compose.yml elasticsearch_cluster
 SCRIPT
 
 Vagrant.configure('2') do |config|
@@ -66,10 +44,9 @@ Vagrant.configure('2') do |config|
     manager.vm.provision "shell", inline: $install_docker_script, privileged: true
     manager.vm.provision "shell", inline: $manager_script, privileged: true
     manager.vm.provision "shell", inline: $es_script, privileged: true
-    manager.vm.provision "shell", inline: $kibana_script, privileged: true
     manager.vm.provider "virtualbox" do |vb|
       vb.name = "manager"
-      vb.memory = "1644"
+      vb.memory = "3096"
     end
   end
 
@@ -84,7 +61,7 @@ Vagrant.configure('2') do |config|
       worker.vm.provision "shell", inline: $worker_script, privileged: true
       worker.vm.provider "virtualbox" do |vb|
         vb.name = "worker0#{i}"
-        vb.memory = "1024"
+        vb.memory = "2048"
       end
     end
   end
