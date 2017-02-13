@@ -25,7 +25,7 @@ SCRIPT
 
 $es_script = <<SCRIPT
 echo ElasticSearch Init...
-docker stack deploy -c docker-compose.yml elasticsearch_cluster
+cd /vagrant && docker stack deploy -c docker-compose.yml elk_cluster
 SCRIPT
 
 Vagrant.configure('2') do |config|
@@ -41,16 +41,17 @@ Vagrant.configure('2') do |config|
     manager.vm.network :forwarded_port, guest: 9200, host: 9200
     manager.vm.hostname = "manager"
     manager.vm.synced_folder ".", "/vagrant"
+    config.vm.provision "file", source: "~/.gitconfig", destination: ".gitconfig"
     manager.vm.provision "shell", inline: $install_docker_script, privileged: true
     manager.vm.provision "shell", inline: $manager_script, privileged: true
     manager.vm.provision "shell", inline: $es_script, privileged: true
     manager.vm.provider "virtualbox" do |vb|
       vb.name = "manager"
-      vb.memory = "3096"
+      vb.memory = "2048"
     end
   end
 
-  (1..1).each do |i|
+  (1..2).each do |i|
     config.vm.define "worker0#{i}" do |worker|
       worker.vm.box = vm_box
       worker.vm.box_check_update = true
@@ -61,7 +62,7 @@ Vagrant.configure('2') do |config|
       worker.vm.provision "shell", inline: $worker_script, privileged: true
       worker.vm.provider "virtualbox" do |vb|
         vb.name = "worker0#{i}"
-        vb.memory = "2048"
+        vb.memory = "1024"
       end
     end
   end
