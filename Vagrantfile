@@ -47,7 +47,7 @@ Vagrant.configure('2') do |config|
     manager.vm.provision "shell", inline: $es_script, privileged: true
     manager.vm.provider "virtualbox" do |vb|
       vb.name = "manager"
-      vb.memory = "2048"
+      vb.memory = "3072"
     end
   end
 
